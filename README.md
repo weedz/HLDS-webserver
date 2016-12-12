@@ -15,13 +15,17 @@ Use `npm` to install node depencies:
 ```
 npm install --production
 ```
-**Note:** add these lines to your amxx.cfg file
+**Note:** add these lines to your amxx.cfg file:
 ```
 csstats_sql_db "csstatsx"
 csstats_sql_type "sqlite"
+csstats_sql_create_db "1"
 csstats_sql_weapons "1"
 csstats_sql_maps "1"
 ```
+Make sure module sqlite and csx is enabled in `cstrike/amxmodx/configs/modules.ini`
+
+
 Then start the counter-strike server to generate database file. This file should be located in `cstrike/amxmodx/data/sqlite3/csstatsx.sq3`. Open this file with a SQLite browser and execute `csstats_maps_sqlite.sql` from csstatsx-sql then restart server.
 
 ##Node depencies
