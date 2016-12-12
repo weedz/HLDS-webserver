@@ -1,0 +1,88 @@
+{% extends "default.njk" %}
+{% block content %}
+{% include "weapons-select.njk" %}
+<h2>Weapons</h2>
+<table id="weapons">
+    <thead>
+        <th>Player</th>
+        <th>Weapon</th>
+        <th class="sort">Dmg</th>
+        <th class="sort">Hits</th>
+        <th class="sort">Accuracy</th>
+        <th class="sort">Kills (HS%)</th>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+{% endblock %}
+{% block script %}
+<script>
+
+    var socket = io.connect('http://{{ip}}');
+    var interval = null;
+
+    $('#weapon').on('change', function(e) {
+        $('#weapons tbody').empty();
+        clearInterval(interval);
+        var p = 'fetch_data_weapon';
+        var data = e.target.value;
+        if (e.target.value == 'all') {
+            p = 'fetch_data_weapons';
+            data = null;
+        }
+        socket.emit(p, data);
+        interval = setInterval(function() {
+            socket.emit(p, data);
+        }, 5000)
+    });
+
+    function updateTable(data) {
+        if (data == null) {
+            return;
+        }
+        var wtable = $('#weapons tbody');
+        var accuracy = Math.round((data['hits']/data['shots'])*100);
+        var hs = Math.round((data['hs']/data['kills'])*100);
+        var skill = Math.round(data['skill']*100)/100;
+        var playtime = data['connection_time'];
+        var row = wtable.find('#'+data['id']+'.'+data['weapon']);
+        if (row.length) {
+            // Update values
+            row.find('.dmg').html(data['dmg']);
+            row.find('.hits').html(data['hits']);
+            row.find('.accuracy').html(!isNaN(accuracy) ? accuracy+'%' : '0');
+            row.find('.kills').html(data['kills'] + (!isNaN(hs) ? ' ('+hs+'%)' : ''));
+        } else {
+            wtable.append(
+                '<tr id="'+data['id']+'" class="'+data['weapon']+'"><td><a href="/player/'+data['id']+'">'+data['name']+'</a></td><td>'+data['weapon']+'</td><td class="dmg">'+data['dmg']+'</td><td class="hits">'+data['hits']+'</td><td class="accuracy">' +
+                (!isNaN(accuracy) ? accuracy+'%' : '0') + '</td><td class="kills">' +
+                data['kills'] +(!isNaN(hs) ? ' ('+hs+'%)' : '')+
+                '</td></tr>'
+            );
+        }
+        var tmp = $('._sortUp');
+        var d = 0;
+        if (tmp.length == 0) {
+            tmp = $('._sortDown');
+            d = 1;
+        }
+        if (tmp.length != 0) {
+            sortTable("weapons",tmp[0].cellIndex, d);
+        }
+    }
+
+    socket.on('connect', function() {
+        socket.emit('fetch_data_weapon', document.getElementById('weapon').value);
+        interval = setInterval(function() {
+            socket.emit('fetch_data_weapon', document.getElementById('weapon').value);
+        }, 5000)
+    });
+    socket.on('recieve_data_weapons', function(data) {
+        updateTable(data);
+    });
+    socket.on('recieve_data_weapon', function(data) {
+        updateTable(data);
+    });
+
+</script>
+{% endblock %}

@@ -1,0 +1,325 @@
+{% extends "default.njk" %}
+{% block content %}
+<p>SteamID: <span class="steamid"></span> - First joined: <span class="firstjoined"></span> - Last seen: <span class="lastseen"></span></p>
+{% include "weapons-select.njk" %}
+<h2>Player stats</h2>
+<table id="players">
+    <thead>
+        <tr>
+            <th>Player</th>
+            <th>Skill</th>
+            <th>Dmg</th>
+            <th>Hits</th>
+            <th>Accuracy</th>
+            <th>Kills (HS%)</th>
+            <th>Assists</th>
+            <th>TKs</th>
+            <th>Deaths</th>
+            <th>Playtime(s)</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<h2>Objectives</h2>
+<table id="objectives">
+    <thead>
+        <th>Bomb def</th>
+        <th>Bomb plants</th>
+        <th>Round T</th>
+        <th>Win T</th>
+        <th>Round CT</th>
+        <th>Win CT</th>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<h2>Weapons</h2>
+<table id="weapons">
+    <thead>
+        <th>Weapon</th>
+        <th class="sort">Dmg</th>
+        <th class="sort">Hits</th>
+        <th class="sort">Accuracy</th>
+        <th class="sort">Kills (HS%)</th>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<h2>Hits</h2>
+<table id="hits">
+    <thead>
+        <th>Whole body</th>
+        <th>Head</th>
+        <th>Chest</th>
+        <th>Stomach</th>
+        <th>Left arm</th>
+        <th>Right arm</th>
+        <th>Left leg</th>
+        <th>Right leg</th>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<h2>Maps</h2>
+<select id="map">
+    <option value="all">All</option>
+    {% for map in maps %}
+    <option value="{{map.session_id}}">{{map.map}}:{{map.session_id}}</option>
+    {% endfor %}
+</select>
+<table id="maps">
+    <thead>
+        <tr>
+            <th>Map</th>
+            <th class="sort">Skill</th>
+            <th class="sort">Dmg</th>
+            <th class="sort">Hits</th>
+            <th class="sort">Accuracy</th>
+            <th class="sort">Kills (HS%)</th>
+            <th class="sort">Assists</th>
+            <th class="sort">TKs</th>
+            <th class="sort">Deaths</th>
+            <th class="sort">Playtime(s)</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+{% endblock %}
+
+{% block script %}
+<script>
+    function updateTables(data) {
+        if (data == null) {
+            return;
+        }
+        var ptable = $('#players tbody');
+        var otable = $('#objectives tbody');
+        var htable = $('#hits tbody');
+        var accuracy = Math.round((data['hits']/data['shots'])*100);
+        var hs = Math.round((data['hs']/data['kills'])*100);
+        var skill = Math.round(data['skill']*100)/100;
+        var playtime = data['connection_time'];
+        var row = ptable.find('tr:first-child');
+        var rowo = otable.find('tr:first-child');
+        var rowh = htable.find('tr:first-child');
+        if (row.length) {
+            // Update values
+            row.find('.skill').html(skill);
+            row.find('.dmg').html(data['dmg']);
+            row.find('.hits').html(data['hits']);
+            row.find('.accuracy').html(!isNaN(accuracy) ? accuracy+'%' : '0');
+            row.find('.kills').html(data['kills'] + (!isNaN(hs) ? ' ('+hs+'%)' : ''));
+            row.find('.deaths').html(data['deaths']);
+            row.find('.assists').html(data['assists']);
+            row.find('.playtime').html(playtime);
+            row.find('.tks').html(data['tks']);
+        } else {
+			$('.steamid').html(data['steamid']);
+			$('.firstjoined').html(data['first_join']);
+			$('.lastseen').html(data['last_join']);
+            ptable.append(
+                '<tr><td class="name"><a href="/player/'+data['id']+'">'+data['name']+'</a></td><td class="skill">' + skill +
+                '</td><td class="dmg">'+data['dmg']+'</td><td class="hits">'+data['hits']+'</td><td class="accuracy">' +
+                (!isNaN(accuracy) ? accuracy+'%' : '0') + '</td><td class="kills">' +
+                data['kills'] +(!isNaN(hs) ? ' ('+hs+'%)' : '')+
+                '</td><td class="assists">'+data['assists']+'</td><td class="tks">'+
+                data['tks']+'</td><td class="deaths">'+data['deaths']+
+                '</td><td class="playtime">'+playtime+'</td></tr>'
+            );
+        }
+        if (rowo.length) {
+            // Objectives
+            rowo.find('.bombdef').html(data['bombdefused']);
+            rowo.find('.bombplant').html(data['bombplants']);
+            rowo.find('.roundt').html(data['roundt']);
+            rowo.find('.wint').html(data['wint']);
+            rowo.find('.roundct').html(data['roundct']);
+            rowo.find('.winct').html(data['winct']);
+        } else {
+            otable.append(
+                '<tr><td class="bombdef">'+data['bombdefused']+
+                    '</td><td class="bombplant">'+data['bombplants']+
+                    '</td><td class="roundt">'+data['roundt']+
+                    '</td><td class="wint">'+data['wint']+
+                    '</td><td class="roundct">'+data['roundct']+
+                    '</td><td class="winct">'+data['winct']+'</td></tr>'
+            );
+        }
+        if (rowh.length) {
+            // Hits
+            rowh.find('.hitbody').html(data['h_0']);
+            rowh.find('.hithead').html(data['h_1']);
+            rowh.find('.hitchest').html(data['h_2']);
+            rowh.find('.hitstomach').html(data['h_3']);
+            rowh.find('.hitleftarm').html(data['h_4']);
+            rowh.find('.hitrightarm').html(data['h_5']);
+            rowh.find('.hitleftleg').html(data['h_6']);
+            rowh.find('.hitrightleg').html(data['h_7']);
+        } else {
+            htable.append(
+                '<tr><td class="hitbody">'+data['h_0']+
+                    '</td><td class="hithead">'+data['h_1']+
+                    '</td><td class="hitchest">'+data['h_2']+
+                    '</td><td class="hitstomach">'+data['h_3']+
+                    '</td><td class="hitleftarm">'+data['h_4']+
+                    '</td><td class="hitrightarm">'+data['h_5']+
+                    '</td><td class="hitleftleg">'+data['h_6']+
+                    '</td><td class="hitrightleg">'+data['h_7']+'</td></tr>'
+            );
+        }
+    }
+    function updateMapTable(data) {
+        if (data == null) {
+            return;
+        }
+        var wtable = $('#maps tbody');
+        var accuracy = Math.round((data['hits']/data['shots'])*100);
+        var hs = Math.round((data['hs']/data['kills'])*100);
+        var skill = Math.round(data['skill']*100)/100;
+        var playtime = data['connection_time'];
+        var row = wtable.find('.map#'+data['map']);
+        if (row.length) {
+            // Update values
+            row.find('.skill').html(skill);
+            row.find('.dmg').html(data['dmg']);
+            row.find('.hits').html(data['hits']);
+            row.find('.accuracy').html(!isNaN(accuracy) ? accuracy+'%' : '0');
+            row.find('.kills').html(data['kills'] + (!isNaN(hs) ? ' ('+hs+'%)' : ''));
+            row.find('.deaths').html(data['deaths']);
+            row.find('.assists').html(data['assists']);
+            row.find('.playtime').html(playtime);
+            row.find('.tks').html(data['tks']);
+        } else {
+            wtable.append(
+                '<tr class="map" id="'+data['map']+'"><td>'+data['map']+'</td><td class="skill">' + skill +
+                '</td><td class="dmg">'+data['dmg']+'</td><td class="hits">'+data['hits']+'</td><td class="accuracy">' +
+                (!isNaN(accuracy) ? accuracy+'%' : '0') + '</td><td class="kills">' +
+                data['kills'] +(!isNaN(hs) ? ' ('+hs+'%)' : '')+
+                '</td><td class="assists">'+data['assists']+'</td><td class="tks">'+
+                data['tks']+'</td><td class="deaths">'+data['deaths']+
+                '</td><td class="playtime">'+playtime+'</td></tr>'
+            );
+        }
+        var tmp = $('#maps thead tr th._sortUp');
+        var d = 0;
+        if (tmp.length == 0) {
+            tmp = $('#maps thead tr th._sortDown');
+            d = 1;
+        }
+        if (tmp.length != 0) {
+            sortTable("maps",tmp[0].cellIndex, d);
+        }
+    }
+	(function() {
+		document.getElementById('weapon').innerHTML = '<option value="all">All</option>' +
+				document.getElementById('weapon').innerHTML;
+	})();
+
+    var socket = io.connect('http://{{ip}}');
+    var interval = null;
+    var mapsInterval = null;
+
+    $('#weapon').on('change', function(e) {
+        $('#players tbody').empty();
+        clearInterval(interval);
+        var p = 'fetch_player_data_weapon';
+        var data = {
+            id:{{id}},
+            weapon:e.target.value
+        };
+        if (data.weapon == 'all') {
+            p = 'fetch_player_data';
+            data = data.id;
+        }
+        socket.emit(p, data);
+        interval = setInterval(function() {
+            socket.emit(p,data);
+        }, 5000)
+    });
+    $('#map').on('change', function(e) {
+        $('#maps tbody').empty();
+        clearInterval(mapsInterval);
+        var p = 'fetch_player_data_map';
+        var data = {
+            player:{{id}},
+            session:e.target.value
+        }
+        if (e.target.value == 'all') {
+            p = 'fetch_player_data_maps'
+            data = {{id}};
+        }
+        socket.emit(p, data);
+        mapsInterval = setInterval(function() {
+            socket.emit(p, data);
+        }, 5000)
+    });
+
+
+    socket.on('connect', function() {
+        socket.emit('fetch_player_data',{{id}});
+        interval = setInterval(function() {
+            socket.emit('fetch_player_data',{{id}});
+        }, 5000);
+        socket.emit('fetch_player_data_weapons',{{id}});
+        socket.emit('fetch_player_data_maps',{{id}});
+        setInterval(function() {
+            socket.emit('fetch_player_data_weapons',{{id}});
+        }, 5000);
+        mapsInterval = setInterval(function() {
+            socket.emit('fetch_player_data_maps',{{id}});
+        }, 5000);
+    });
+    socket.on('recieve_player_data_weapon', function(data) {
+        if (data == null) {
+            return;
+        }
+        data.id = data.player_id;
+        updateTables(data);
+    });
+    socket.on('recieve_player_data_maps', function(data) {
+        updateMapTable(data);
+    });
+    socket.on('recieve_player_data_map', function(data) {
+        updateMapTable(data);
+    });
+    socket.on('recieve_player_data_weapons', function(data) {
+        if (data == null) {
+            return;
+        }
+        var wtable = $('#weapons tbody');
+        var accuracy = Math.round((data['hits']/data['shots'])*100);
+        var hs = Math.round((data['hs']/data['kills'])*100);
+        var skill = Math.round(data['skill']*100)/100;
+        var playtime = data['connection_time'];
+        var row = wtable.find('#'+data['weapon']);
+        if (row.length) {
+            // Update values
+            row.find('.dmg').html(data['dmg']);
+            row.find('.hits').html(data['hits']);
+            row.find('.accuracy').html(!isNaN(accuracy) ? accuracy+'%' : '0');
+            row.find('.kills').html(data['kills'] + (!isNaN(hs) ? ' ('+hs+'%)' : ''));
+        } else {
+            wtable.append(
+                '<tr class="weapon" id="'+data['weapon']+'"><td>'+data['weapon']+'</td><td class="dmg">'+data['dmg']+'</td><td class="hits">'+data['hits']+'</td><td class="accuracy">' +
+                (!isNaN(accuracy) ? accuracy+'%' : '0') + '</td><td class="kills">' +
+                data['kills'] +(!isNaN(hs) ? ' ('+hs+'%)' : '')+
+                '</td></tr>'
+            );
+        }
+        var tmp = $('#weapons thead tr th._sortUp');
+        var d = 0;
+        if (tmp.length == 0) {
+            tmp = $('#weapons thead tr th._sortDown');
+            d = 1;
+        }
+        if (tmp.length != 0) {
+            sortTable("weapons",tmp[0].cellIndex, d);
+        }
+    });
+    socket.on('recieve_player_data', function(data) {
+        updateTables(data);
+    });
+</script>
+{% endblock %}

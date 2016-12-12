@@ -1,0 +1,19 @@
+{
+  "name": "hlds_webserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "hlds_webserver.js",
+  "dependencies": {
+    "express": "^4.14.0",
+    "jquery": "^3.1.1",
+    "nunjucks": "^3.0.0",
+    "socket.io": "^1.7.1",
+    "sqlite3": "^3.1.8"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

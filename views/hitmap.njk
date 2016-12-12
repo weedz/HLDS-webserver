@@ -1,0 +1,71 @@
+{% extends "default.njk" %}
+{% block content %}
+<h2>Hits</h2>
+<table id="hits">
+    <thead>
+        <th>Player</th>
+        <th class="sort">Whole body</th>
+        <th class="sort">Head</th>
+        <th class="sort">Chest</th>
+        <th class="sort">Stomach</th>
+        <th class="sort">Left arm</th>
+        <th class="sort">Right arm</th>
+        <th class="sort">Left leg</th>
+        <th class="sort">Right leg</th>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+{% endblock %}
+{% block script %}
+<script>
+
+    var socket = io.connect('http://{{ip}}');
+    socket.on('connect', function() {
+        socket.emit('fetch_hit_data');
+        setInterval(function() {
+            socket.emit('fetch_hit_data');
+        }, 5000)
+    });
+    socket.on('recieve_hit_data', function(data) {
+        if (data == null) {
+            return;
+        }
+        //console.log(data);
+        var table = $('#hits tbody');
+        var row = table.find('#'+data['id']);
+        if (row.length) {
+            // Update values
+            row.find('.hitbody').html(data['h_0']);
+            row.find('.hithead').html(data['h_1']);
+            row.find('.hitchest').html(data['h_2']);
+            row.find('.hitstomach').html(data['h_3']);
+            row.find('.hitleftarm').html(data['h_4']);
+            row.find('.hitrightarm').html(data['h_5']);
+            row.find('.hitleftleg').html(data['h_6']);
+            row.find('.hitrightleg').html(data['h_7']);
+        } else {
+            table.append(
+                '<tr id="'+data['id']+'"><td class="name"><a href="/player/'+data['id']+'">'+data['name']+'</a></td><td class="hitbody">'+data['h_0']+
+                    '</td><td class="hithead">'+data['h_1']+
+                    '</td><td class="hitchest">'+data['h_2']+
+                    '</td><td class="hitstomach">'+data['h_3']+
+                    '</td><td class="hitleftarm">'+data['h_4']+
+                    '</td><td class="hitrightarm">'+data['h_5']+
+                    '</td><td class="hitleftleg">'+data['h_6']+
+                    '</td><td class="hitrightleg">'+data['h_7']+'</td></tr>'
+            );
+        }
+        var tmp = $('._sortUp');
+        var d = 0;
+        if (tmp.length == 0) {
+            tmp = $('._sortDown');
+            d = 1;
+        }
+        if (tmp.length != 0) {
+            sortTable("hits",tmp[0].cellIndex, d);
+        }
+    });
+
+</script>
+{% endblock %}
