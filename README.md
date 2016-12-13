@@ -8,7 +8,7 @@ Use the `motd.txt` included and edit `views/motd.njk` as needed. Put images and 
 
 Stats requires csstats_sql running on the counter-strike server. Available from https://github.com/serfreeman1337/csstatsx-sql. 
 
-##Installing
+## Installing
 Put `hlds_webserver.js,package.json,motd/,views/` in the same directory as hlds.exe
 
 Use `npm` to install node depencies:
@@ -28,5 +28,5 @@ Make sure module sqlite and csx is enabled in `cstrike/amxmodx/configs/modules.i
 
 Then start the counter-strike server to generate database file. This file should be located in `cstrike/amxmodx/data/sqlite3/csstatsx.sq3`. Open this file with a SQLite browser and execute `csstats_maps_sqlite.sql` from csstatsx-sql then restart server.
 
-##Node depencies
+## Node depencies
 Available from npm: `express,nunjucks,socket.io,sqlite3,jquery`
