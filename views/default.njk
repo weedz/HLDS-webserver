@@ -34,6 +34,7 @@
         background-color: #1f1f1f;
     }
     table {
+		width: 100%;
         border-collapse: collapse;
     }
 	p {
@@ -113,48 +114,55 @@
         <script src="/socket.io/socket.io.js"></script>
         <script src="/jquery/jquery.min.js"></script>
         <script>
-        function sortTable(table, column, direction) {
-            var tbl = document.getElementById(table).tBodies[0];
-            var store = [];
-            for(var i=0, len=tbl.rows.length; i<len; i++){
-                var row = tbl.rows[i];
-                var sortnr = parseFloat(row.cells[column].textContent || row.cells[column].innerText);
-                if(!isNaN(sortnr)) {
-                    store.push([sortnr, row]);
-                }
-            }
-            store.sort(function(x,y){
-                if (direction==1)
-                    return x[0] - y[0];
-                else
-                    return y[0] - x[0];
-            });
-            for(var i=0, len=store.length; i<len; i++){
-                tbl.appendChild(store[i][1]);
-            }
-            store = null;
-        }
-        $('.sort').on('click', function(e) {
-            var d = 0;
-            $(this).parent().find(' .arrow-up').remove();
-            $(this).parent().find(' .arrow-down').remove();
-            if (e.currentTarget.className.indexOf('_sortUp') != -1) {
-                $(this).parent().find('._sortUp').removeClass('_sortUp');
-                $(this).parent().find('._sortDown').removeClass('_sortDown');
-                $(this).addClass('_sortDown');
-                $(this).append('<span class="arrow-down"></span>');
-                d = 1;
-            } else if (e.currentTarget.className.indexOf('_sortDown') != -1) {
-                $(this).parent().find('._sortUp').removeClass('_sortUp');
-                $(this).parent().find('._sortDown').removeClass('_sortDown');
-            } else {
-                $(this).parent().find('._sortUp').removeClass('_sortUp');
-                $(this).parent().find('._sortDown').removeClass('_sortDown');
-                $(this).addClass('_sortUp');
-                $(this).append('<span class="arrow-up"></span>');
-            }
-            sortTable(e.currentTarget.offsetParent.id,e.currentTarget.cellIndex, d);
-        });
+function sortTable(table, column, ascending) {
+	var tbl = document.getElementById(table).tBodies[0];
+	var numbers = true;
+	var store = [];
+	for(var i=0, len=tbl.rows.length; i<len; i++){
+		var row = tbl.rows[i];
+		var sortnr = parseFloat(row.cells[column].textContent || row.cells[column].innerText);
+		if(!isNaN(sortnr)) {
+			store.push([sortnr, row]);
+		} else {
+			numbers = false;
+			store.push([row.cells[column].textContent, row]);
+		}
+	}
+	if (numbers) {
+		store.sort(function(x,y) {
+            return ascending ? x[0] - y[0] : y[0] - x[0];
+		});
+	} else {
+		store.sort();
+		if (!ascending)
+			store.reverse();
+	}
+	for(var i=0, len=store.length; i<len; i++){
+		tbl.appendChild(store[i][1]);
+	}
+	store = null;
+}
+$('.sort').on('click', function(e) {
+	var d = 0;
+	$(this).parent().find(' .arrow-up').remove();
+	$(this).parent().find(' .arrow-down').remove();
+	if (e.currentTarget.className.indexOf('_sortUp') != -1) {
+		$(this).parent().find('._sortUp').removeClass('_sortUp');
+		$(this).parent().find('._sortDown').removeClass('_sortDown');
+		$(this).addClass('_sortDown');
+		$(this).append('<span class="arrow-down"></span>');
+		d = 1;
+	} else if (e.currentTarget.className.indexOf('_sortDown') != -1) {
+		$(this).parent().find('._sortUp').removeClass('_sortUp');
+		$(this).parent().find('._sortDown').removeClass('_sortDown');
+	} else {
+		$(this).parent().find('._sortUp').removeClass('_sortUp');
+		$(this).parent().find('._sortDown').removeClass('_sortDown');
+		$(this).addClass('_sortUp');
+		$(this).append('<span class="arrow-up"></span>');
+	}
+	sortTable(e.currentTarget.offsetParent.id,e.currentTarget.cellIndex, d);
+});
         </script>
         {% block script %}{% endblock %}
     </body>
